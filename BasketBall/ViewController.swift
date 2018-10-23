@@ -14,6 +14,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     @IBOutlet var sceneView: ARSCNView!
     
+    var hoopAdded = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -22,6 +24,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
+        
+        sceneView.autoenablesDefaultLighting = true
         
         // Create a new scene
         let scene = SCNScene()
@@ -71,9 +75,27 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let width = CGFloat(anchor.extent.x)
         let height = CGFloat(anchor.extent.z)
         let node = SCNNode(geometry: SCNPlane(width: width, height: height))
+        node.name = "wall"
         node.eulerAngles.x = -.pi/2
         node.opacity = 0.25
         return node
+    }
+    
+    func stopPlaneDetection() {
+        let configuration = sceneView.session.configuration as! ARWorldTrackingConfiguration
+        configuration.planeDetection = []
+        sceneView.session.run(configuration)
+       
+    }
+    
+    func hidewalls() {
+        stopPlaneDetection()
+        hoopAdded = true
+        sceneView.scene.rootNode.enumerateChildNodes { node,_ in
+            if node.name == "wall" {
+                node.removeFromParentNode()
+            }
+        }
     }
     
     /*
@@ -105,18 +127,53 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         guard let node = scene?.rootNode.childNode(withName: "Hoop", recursively: true) else {return}
         
-        let position = result.worldTransform.columns.3
-        node.position = SCNVector3(position.x, position.y, position.z)
+        node.simdTransform = result.worldTransform // поворот объекта согласно определенной программой сцены
+        node.eulerAngles.x -= .pi/2
+        
+        node.physicsBody = SCNPhysicsBody(
+            type: .static,
+            shape: SCNPhysicsShape(node: node, options: [
+                SCNPhysicsShape.Option.type:
+                    SCNPhysicsShape.ShapeType.concavePolyhedron]))
+        
+        sceneView.scene.rootNode.addChildNode(node)
+        hidewalls()
+    }
+    
+    func createBasketballs (){
+        guard let frame = sceneView.session.currentFrame else {return}
+        
+        let node = SCNNode(geometry: SCNSphere(radius: 0.25))
+        node.simdTransform = frame.camera.transform
+        
+        node.geometry?.firstMaterial?.diffuse.contents = UIColor.orange
+        
+        let body = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(node: node))
+        node.physicsBody = body
+        
+        let power = Float(10)
+        
+        let transform = SCNMatrix4(frame.camera.transform)
+        let force = SCNVector3(
+            -transform.m31 * power,
+            -transform.m32 * power,
+            -transform.m33 * power
+        )
+        node.physicsBody?.applyForce(force, asImpulse: true)
         
         sceneView.scene.rootNode.addChildNode(node)
     }
     
     @IBAction func screenTapped(_ sender: UITapGestureRecognizer) {
-        let location = sender.location(in: sceneView)
-        let result = sceneView.hitTest(location, types: [.existingPlaneUsingExtent])
-        
-        if let result = result.first {
-            addHoop(result: result)
-    }
+        if !hoopAdded {
+            let location = sender.location(in: sceneView)
+            let result = sceneView.hitTest(location, types: [.existingPlaneUsingExtent])
+            
+            if let result = result.first {
+                addHoop(result: result)
+            }
+        } else {
+            createBasketballs()
+        }
     }
 }
