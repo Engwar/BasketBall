@@ -122,43 +122,50 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
     }
     
+    //добавляем в сцену кольцо со считом для взаимодействия с мячом
     func addHoop(result: ARHitTestResult) {
         let scene = SCNScene(named: "art.scnassets/Hoop.scn")
         
         guard let node = scene?.rootNode.childNode(withName: "Hoop", recursively: true) else {return}
         
-        node.simdTransform = result.worldTransform // поворот объекта согласно определенной программой сцены
+        // поворот объекта согласно определенной программой сцены (поверхности)
+        node.simdTransform = result.worldTransform
         node.eulerAngles.x -= .pi/2
         
+        //создаем физику щита
         node.physicsBody = SCNPhysicsBody(
             type: .static,
             shape: SCNPhysicsShape(node: node, options: [
                 SCNPhysicsShape.Option.type:
-                    SCNPhysicsShape.ShapeType.concavePolyhedron]))
+                    SCNPhysicsShape.ShapeType.concavePolyhedron])) // проталкиваем мяч в кольцо
         
         sceneView.scene.rootNode.addChildNode(node)
         hidewalls()
     }
     
+//создаем мяч
     func createBasketballs (){
         guard let frame = sceneView.session.currentFrame else {return}
         
         let node = SCNNode(geometry: SCNSphere(radius: 0.25))
         node.simdTransform = frame.camera.transform
         
+// добавляем текстуру мяча
         let material = SCNMaterial()
         material.diffuse.contents = UIImage(named: "art.scnassets/limestonemarked2-albedo")
         material.ambientOcclusion.contents = UIImage(named: "art.scnassets/limestonemarked2-ao")
         material.metalness.contents = UIImage(named: "art.scnassets/limestonemarked2-metallic")
         material.normal.contents = UIImage(named: "art.scnassets/limestonemarked2-normal-dx")
         material.roughness.contents = UIImage(named: "art.scnassets/limestonemarked2-rough")
-        
         node.geometry?.firstMaterial = material
+        
+//создаем физическое тело мяча чтобы придать физические свойства (сила тяжести, столкновения и т.д.)
         let body = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(node: node))
         node.physicsBody = body
         
         let power = Float(10)
         
+// создаем бросок (полет мяча) по напрявлению от нас, иначе он будет просто падать
         let transform = SCNMatrix4(frame.camera.transform)
         let force = SCNVector3(
             -transform.m31 * power,
@@ -170,6 +177,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(node)
     }
     
+    //добавляем бросок мяча по нажатию на экран
     @IBAction func screenTapped(_ sender: UITapGestureRecognizer) {
         if !hoopAdded {
             let location = sender.location(in: sceneView)
