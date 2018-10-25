@@ -146,8 +146,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let node = SCNNode(geometry: SCNSphere(radius: 0.25))
         node.simdTransform = frame.camera.transform
         
-        node.geometry?.firstMaterial?.diffuse.contents = UIColor.orange
+        let material = SCNMaterial()
+        material.diffuse.contents = UIImage(named: "art.scnassets/limestonemarked2-albedo")
+        material.ambientOcclusion.contents = UIImage(named: "art.scnassets/limestonemarked2-ao")
+        material.metalness.contents = UIImage(named: "art.scnassets/limestonemarked2-metallic")
+        material.normal.contents = UIImage(named: "art.scnassets/limestonemarked2-normal-dx")
+        material.roughness.contents = UIImage(named: "art.scnassets/limestonemarked2-rough")
         
+        node.geometry?.firstMaterial = material
         let body = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(node: node))
         node.physicsBody = body
         
