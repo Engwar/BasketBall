@@ -99,6 +99,7 @@
 				TargetAttributes = {
 					94FA0365217C707200EC66E0 = {
 						CreatedOnToolsVersion = 10.0;
+						LastSwiftMigration = 1110;
 					};
 				};
 			};
@@ -296,7 +297,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.enigvor.BasketBall;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -315,7 +316,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.enigvor.BasketBall;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

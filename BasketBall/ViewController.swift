@@ -122,7 +122,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
     }
     
-    //добавляем в сцену кольцо со считом для взаимодействия с мячом
+    //добавляем в сцену кольцо со щитом для взаимодействия с мячом
     func addHoop(result: ARHitTestResult) {
         let scene = SCNScene(named: "art.scnassets/Hoop.scn")
         
